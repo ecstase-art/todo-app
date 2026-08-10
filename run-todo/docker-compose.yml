@@ -13,7 +13,7 @@ services:
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql
 
   web:
-    image: Ecstase/todo-app:latest   # готовый образ с Docker Hub, не сборка
+    image: ecstase/todo-app:latest   # готовый образ с Docker Hub, не сборка
     ports:
       - "5000:5000"
     depends_on:
