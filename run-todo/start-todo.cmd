@@ -1,0 +1,9 @@
+@echo off
+echo Запускаем Todo App...
+docker-compose up -d
+echo Ждём 5 секунд, пока база данных поднимется...
+timeout /t 5 /nobreak >nul
+echo Открываем браузер...
+start http://localhost:5000
+echo Готово! Приложение работает.
+pause
