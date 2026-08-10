@@ -7,6 +7,6 @@
 ## 🚀 Быстрый старт
 
 ```bash
-git clone https://github.com/Ecstase/todo-app.git
+git clone https://github.com/ecstase/todo-app.git
 cd todo-app
 docker-compose up --build
