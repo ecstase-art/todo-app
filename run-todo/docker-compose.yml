@@ -11,6 +11,7 @@ services:
       - "5432:5432"
     volumes:
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+      - postgres_data:/var/lib/postgresql/data
 
   web:
     image: ecstase/todo-app:latest   # готовый образ с Docker Hub, не сборка
@@ -20,3 +21,6 @@ services:
       - db
     environment:
       - FLASK_ENV=development
+
+volumes:
+  postgres_data:
