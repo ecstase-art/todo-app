@@ -55,14 +55,8 @@ run-todo использует готовый образ с Docker Hub (скач�
 🛑 Как остановить
 В папке run-todo дважды кликни по файлу stop-todo.cmd (Windows) или выполни docker-compose down в терминале (Linux).  
 
-📁 Структура папки run-todo
-run-todo/
-├── start-todo.cmd          # для Windows
-├── start-todo.sh           # для Linux / macOS
-├── stop-todo.cmd           # для Windows (остановка)
-├── stop-todo.sh            # для Linux / macOS (остановка)
-├── docker-compose.yml      # запуск контейнеров
-└── init.sql                # создание таблицы в БД
+
+
 ❓ Частые вопросы
 Вопрос: При запуске пишет port 5000 already in use
 Ответ: Закрой другие программы, которые используют порт 5000, или измени порт в файле docker-compose.yml (вместо "5000:5000" напиши "5001:5000" и открывай http://localhost:5001).
@@ -73,7 +67,6 @@ run-todo/
 Вопрос: Ошибка could not translate host name "db"
 Ответ: Ты запускаешь только контейнер web без базы данных. Используй docker-compose up — он поднимет оба сервиса.
 
-👨‍💻 Автор
-ecstase-art
+👨‍💻 Автор [ecstase-art](https://github.com/ecstase-art)
 
-Если что-то не работает — создай Issue в репозитории, я помогу.
+Если что-то не работает — [создай Issue](https://github.com/ecstase-art/todo-app/issues) в репозитории, я помогу.
