@@ -50,30 +50,33 @@ def index():
             conn.close()
             return redirect(url_for('index'))
 
-    cur.execute('SELECT id, description, deadline, notify_minutes FROM tasks ORDER BY id DESC')
+    cur.execute('SELECT id, description, deadline, notify_minutes, completed FROM tasks ORDER BY id DESC')
     tasks = cur.fetchall()
     cur.close()
     conn.close()
 
     now = datetime.now()
-    highlighted_tasks = []
+    processed_tasks = []
     for task in tasks:
-        task_id, description, deadline, notify_minutes = task
-        highlight = False
-        if deadline and notify_minutes:
-            alert_time = deadline - timedelta(minutes=notify_minutes)
-            if now > alert_time:
-                highlight = True
-        highlighted_tasks.append((task_id, description, deadline, notify_minutes, highlight))
+        task_id, description, deadline, notify_minutes, completed = task
+        status_class = ''
+        if completed:
+            status_class = 'completed'
+        else:
+            if deadline:
+                if now > deadline:
+                    status_class = 'overdue'
+                elif notify_minutes and now > (deadline - timedelta(minutes=notify_minutes)):
+                    status_class = 'warning'
+        processed_tasks.append((task_id, description, deadline, notify_minutes, completed, status_class))
 
-    return render_template('index.html', tasks=highlighted_tasks)
+    return render_template('index.html', tasks=processed_tasks)
 
-# ---- НОВЫЙ МАРШРУТ: показать форму редактирования ----
 @app.route('/edit/<int:task_id>', methods=['GET'])
 def edit_task(task_id):
     conn = get_db_connection()
     cur = conn.cursor()
-    cur.execute('SELECT id, description, deadline, notify_minutes FROM tasks WHERE id = %s', (task_id,))
+    cur.execute('SELECT id, description, deadline, notify_minutes, completed FROM tasks WHERE id = %s', (task_id,))
     task = cur.fetchone()
     cur.close()
     conn.close()
@@ -81,7 +84,6 @@ def edit_task(task_id):
         return redirect(url_for('index'))
     return render_template('edit.html', task=task)
 
-# ---- НОВЫЙ МАРШРУТ: обновить задачу ----
 @app.route('/edit/<int:task_id>', methods=['POST'])
 def update_task(task_id):
     task = request.form['task']
@@ -95,12 +97,23 @@ def update_task(task_id):
         notify_minutes = 0
     else:
         notify_minutes = int(notify_minutes_str)
+    completed = request.form.get('completed') == 'on'
     conn = get_db_connection()
     cur = conn.cursor()
     cur.execute(
-        'UPDATE tasks SET description = %s, deadline = %s, notify_minutes = %s WHERE id = %s',
-        (task, deadline, notify_minutes, task_id)
+        'UPDATE tasks SET description = %s, deadline = %s, notify_minutes = %s, completed = %s WHERE id = %s',
+        (task, deadline, notify_minutes, completed, task_id)
     )
+    conn.commit()
+    cur.close()
+    conn.close()
+    return redirect(url_for('index'))
+
+@app.route('/complete/<int:task_id>', methods=['POST'])
+def complete_task(task_id):
+    conn = get_db_connection()
+    cur = conn.cursor()
+    cur.execute('UPDATE tasks SET completed = TRUE WHERE id = %s', (task_id,))
     conn.commit()
     cur.close()
     conn.close()

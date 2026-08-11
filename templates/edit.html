@@ -4,24 +4,10 @@
     <meta charset="UTF-8">
     <title>Редактировать задачу</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <style>
-        /* Дополнительные стили только для страницы редактирования */
-        form div {
-            margin-bottom: 10px;
-        }
-        label {
-            display: inline-block;
-            width: 150px;
-        }
-        input[type="text"], input[type="datetime-local"], input[type="number"] {
-            padding: 5px;
-            width: 70%;
-        }
-    </style>
 </head>
 <body>
     <h1>✏️ Редактировать задачу</h1>
-    <form method="POST">
+    <form method="POST" class="edit-form">
         <div>
             <label for="task">Текст задачи:</label>
             <input type="text" id="task" name="task" value="{{ task[1] }}" required>
@@ -35,9 +21,13 @@
             <input type="number" id="notify_minutes" name="notify_minutes" value="{{ task[3] or 0 }}" min="0">
         </div>
         <div>
+            <label for="completed">Выполнено:</label>
+            <input type="checkbox" id="completed" name="completed" {% if task[4] %}checked{% endif %}>
+        </div>
+        <div>
             <button type="submit">Сохранить</button>
         </div>
     </form>
-    <a href="{{ url_for('index') }}">← Вернуться к списку</a>
+    <a href="{{ url_for('index') }}" class="back-link">← Вернуться к списку</a>
 </body>
 </html>

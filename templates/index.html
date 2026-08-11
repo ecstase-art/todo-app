@@ -3,121 +3,28 @@
 <head>
     <meta charset="UTF-8">
     <title>Мои задачи</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            max-width: 800px;
-            margin: 20px auto;
-            padding: 0 20px;
-        }
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 2px solid #eee;
-            padding-bottom: 10px;
-            margin-bottom: 20px;
-        }
-        #current-time {
-            font-size: 1.2em;
-            color: #555;
-        }
-        .task-item {
-            margin: 10px 0;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background-color: #fff;
-            transition: background-color 0.2s;
-        }
-        .task-text {
-            flex: 1;
-        }
-        .task-deadline {
-            margin: 0 15px;
-            color: #555;
-        }
-        /* Жёлтый — есть оповещение */
-        .notification {
-            background-color: #fff3cd;
-            border-color: #ffc107;
-        }
-        /* Красный — просрочено */
-        .overdue {
-            background-color: #f8d7da;
-            border-color: #dc3545;
-        }
-        /* Кнопка удаления — красный кружок с крестиком */
-        .delete-btn {
-            background-color: #dc3545;
-            color: white;
-            border: none;
-            border-radius: 50%;
-            width: 30px;
-            height: 30px;
-            font-size: 20px;
-            line-height: 30px;
-            text-align: center;
-            cursor: pointer;
-            padding: 0;
-            margin-left: 10px;
-        }
-        .delete-btn:hover {
-            background-color: #c82333;
-        }
-        form input, form button {
-            margin: 5px 0;
-            padding: 5px;
-        }
-        form input[type="text"] {
-            width: 60%;
-        }
-        form input[type="datetime-local"], form input[type="number"] {
-            width: 20%;
-        }
-        form button[type="submit"] {
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            border-radius: 3px;
-            padding: 6px 12px;
-            cursor: pointer;
-        }
-        form button[type="submit"]:hover {
-            background-color: #45a049;
-        }
-        a {
-            text-decoration: none;
-            color: #007bff;
-        }
-        a:hover {
-            text-decoration: underline;
-        }
-    </style>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
     <div class="header">
         <h1>📋 Список задач</h1>
-        <div id="current-time"></div>
+        <div class="clock-container">
+            <canvas id="clock" width="160" height="160"></canvas>
+            <div id="current-date"></div>
+        </div>
     </div>
 
-    <form method="POST">
+    <form method="POST" id="task-form">
         <input type="text" name="task" placeholder="Новая задача" required>
-        <input type="datetime-local" name="deadline" placeholder="Дедлайн">
+        <input type="datetime-local" name="deadline" id="deadline-input" placeholder="Дедлайн">
         <input type="number" name="notify_minutes" placeholder="Минуты до оповещения" min="0">
         <button type="submit">Добавить</button>
     </form>
 
-    <ul style="list-style: none; padding: 0;">
+    <ul>
         {% for task in tasks %}
-            <li class="task-item
-                {% if task[4] %}overdue
-                {% elif task[2] and task[3] %}notification
-                {% endif %}">
-                <span class="task-text">{{ task[1] }}</span>
+            <li class="task-item {{ task[5] }}">
+                <span class="task-text {% if task[4] %}completed-text{% endif %}">{{ task[1] }}</span>
                 <span class="task-deadline">
                     {% if task[2] %}
                         Дедлайн: {{ task[2].strftime('%d.%m.%Y %H:%M') }}
@@ -128,11 +35,16 @@
                         Без дедлайна
                     {% endif %}
                 </span>
-                <div style="display: flex; align-items: center;">
-                    <a href="{{ url_for('edit_task', task_id=task[0]) }}" style="margin-right: 10px;">✏️</a>
+                <div>
+                    <a href="{{ url_for('edit_task', task_id=task[0]) }}">✏️</a>
+                    {% if not task[4] %}
+                        <form method="POST" action="{{ url_for('complete_task', task_id=task[0]) }}" style="display: inline;">
+                            <button type="submit" class="complete-btn" title="Отметить выполненным">✔️</button>
+                        </form>
+                    {% endif %}
                     <form method="POST" style="display: inline;">
                         <input type="hidden" name="delete_id" value="{{ task[0] }}">
-                        <button type="submit" class="delete-btn">×</button>
+                        <button type="submit" class="delete-btn" title="Удалить задачу">✖</button>
                     </form>
                 </div>
             </li>
@@ -140,20 +52,111 @@
     </ul>
 
     <script>
-        function updateTime() {
+        // === Аналоговые часы ===
+        const canvas = document.getElementById('clock');
+        const ctx = canvas.getContext('2d');
+
+        function drawClock() {
             const now = new Date();
-            const options = {
+            const hours = now.getHours() % 12;
+            const minutes = now.getMinutes();
+            const seconds = now.getSeconds();
+            const millis = now.getMilliseconds();
+
+            const radius = 70;
+            const centerX = 80;
+            const centerY = 80;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+            ctx.fillStyle = 'white';
+            ctx.fill();
+            ctx.strokeStyle = '#333';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            for (let i = 0; i < 12; i++) {
+                const angle = (i / 12) * 2 * Math.PI - Math.PI / 2;
+                const isHour = i % 3 === 0;
+                const len = isHour ? 10 : 6;
+                const outerR = radius - 5;
+                const innerR = outerR - len;
+                ctx.beginPath();
+                ctx.moveTo(centerX + innerR * Math.cos(angle), centerY + innerR * Math.sin(angle));
+                ctx.lineTo(centerX + outerR * Math.cos(angle), centerY + outerR * Math.sin(angle));
+                ctx.strokeStyle = '#333';
+                ctx.lineWidth = isHour ? 3 : 1.5;
+                ctx.stroke();
+            }
+
+            ctx.font = '14px Arial';
+            ctx.fillStyle = '#333';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            for (let i = 1; i <= 12; i++) {
+                const angle = (i / 12) * 2 * Math.PI - Math.PI / 2;
+                const r = radius - 20;
+                const x = centerX + r * Math.cos(angle);
+                const y = centerY + r * Math.sin(angle);
+                ctx.fillText(i.toString(), x, y);
+            }
+
+            const secAngle = (seconds + millis / 1000) / 60 * 2 * Math.PI - Math.PI / 2;
+            ctx.beginPath();
+            ctx.moveTo(centerX, centerY);
+            ctx.lineTo(centerX + (radius - 15) * Math.cos(secAngle), centerY + (radius - 15) * Math.sin(secAngle));
+            ctx.strokeStyle = 'red';
+            ctx.lineWidth = 1.5;
+            ctx.stroke();
+
+            const minAngle = (minutes + seconds / 60) / 60 * 2 * Math.PI - Math.PI / 2;
+            ctx.beginPath();
+            ctx.moveTo(centerX, centerY);
+            ctx.lineTo(centerX + (radius - 25) * Math.cos(minAngle), centerY + (radius - 25) * Math.sin(minAngle));
+            ctx.strokeStyle = '#333';
+            ctx.lineWidth = 3;
+            ctx.stroke();
+
+            const hourAngle = (hours + minutes / 60) / 12 * 2 * Math.PI - Math.PI / 2;
+            ctx.beginPath();
+            ctx.moveTo(centerX, centerY);
+            ctx.lineTo(centerX + (radius - 40) * Math.cos(hourAngle), centerY + (radius - 40) * Math.sin(hourAngle));
+            ctx.strokeStyle = '#222';
+            ctx.lineWidth = 4;
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, 4, 0, 2 * Math.PI);
+            ctx.fillStyle = '#333';
+            ctx.fill();
+
+            const dateStr = now.toLocaleDateString('ru-RU', {
                 day: '2-digit',
                 month: '2-digit',
-                year: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit',
-                second: '2-digit'
-            };
-            document.getElementById('current-time').textContent = now.toLocaleDateString('ru-RU', options);
+                year: 'numeric'
+            });
+            document.getElementById('current-date').textContent = dateStr;
         }
-        updateTime();
-        setInterval(updateTime, 1000);
+
+        drawClock();
+        setInterval(drawClock, 1000);
+
+        // === Автоподстановка времени в поле дедлайна ===
+        document.addEventListener('DOMContentLoaded', function() {
+            const deadlineInput = document.getElementById('deadline-input');
+            if (deadlineInput) {
+                const now = new Date();
+                now.setSeconds(0, 0);
+                const year = now.getFullYear();
+                const month = String(now.getMonth() + 1).padStart(2, '0');
+                const day = String(now.getDate()).padStart(2, '0');
+                const hours = String(now.getHours()).padStart(2, '0');
+                const minutes = String(now.getMinutes()).padStart(2, '0');
+                deadlineInput.value = `${year}-${month}-${day}T${hours}:${minutes}`;
+            }
+        });
     </script>
 </body>
 </html>
