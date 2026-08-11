@@ -1,20 +1,141 @@
-<li class="task-item {% if task[4] %}highlight{% endif %}">
-    <span class="task-text">{{ task[1] }}</span>
-    <span class="task-deadline">
-        {% if task[2] %}
-            Дедлайн: {{ task[2].strftime('%d.%m.%Y %H:%M') }}
-            {% if task[3] %}
-                (оповестить за {{ task[3] }} мин.)
-            {% endif %}
-        {% else %}
-            Без дедлайна
-        {% endif %}
-    </span>
-    <div>
-        <a href="{{ url_for('edit_task', task_id=task[0]) }}" style="margin-right: 10px;">✏️</a>
-        <form method="POST" style="display: inline;">
-            <input type="hidden" name="delete_id" value="{{ task[0] }}">
-            <button type="submit" class="delete-btn">Удалить</button>
-        </form>
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Мои задачи</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 0 20px;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        #current-time {
+            font-size: 1.2em;
+            color: #555;
+        }
+        .task-item {
+            margin: 10px 0;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .task-text {
+            flex: 1;
+        }
+        .task-deadline {
+            margin: 0 15px;
+            color: #555;
+        }
+        .highlight {
+            background-color: #ffcccc;
+            border-color: #ff0000;
+        }
+        .delete-btn {
+            background-color: #ff4444;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            padding: 5px 10px;
+            cursor: pointer;
+        }
+        .delete-btn:hover {
+            background-color: #cc0000;
+        }
+        form input, form button {
+            margin: 5px 0;
+            padding: 5px;
+        }
+        form input[type="text"] {
+            width: 60%;
+        }
+        form input[type="datetime-local"], form input[type="number"] {
+            width: 20%;
+        }
+        form button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            padding: 6px 12px;
+            cursor: pointer;
+        }
+        form button:hover {
+            background-color: #45a049;
+        }
+        a {
+            text-decoration: none;
+            color: #007bff;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>📋 Список задач</h1>
+        <div id="current-time"></div>
     </div>
-</li>
+
+    <form method="POST">
+        <input type="text" name="task" placeholder="Новая задача" required>
+        <input type="datetime-local" name="deadline" placeholder="Дедлайн">
+        <input type="number" name="notify_minutes" placeholder="Минуты до оповещения" min="0">
+        <button type="submit">Добавить</button>
+    </form>
+
+    <ul style="list-style: none; padding: 0;">
+        {% for task in tasks %}
+            <li class="task-item {% if task[4] %}highlight{% endif %}">
+                <span class="task-text">{{ task[1] }}</span>
+                <span class="task-deadline">
+                    {% if task[2] %}
+                        Дедлайн: {{ task[2].strftime('%d.%m.%Y %H:%M') }}
+                        {% if task[3] %}
+                            (оповестить за {{ task[3] }} мин.)
+                        {% endif %}
+                    {% else %}
+                        Без дедлайна
+                    {% endif %}
+                </span>
+                <div>
+                    <a href="{{ url_for('edit_task', task_id=task[0]) }}" style="margin-right: 10px;">✏️</a>
+                    <form method="POST" style="display: inline;">
+                        <input type="hidden" name="delete_id" value="{{ task[0] }}">
+                        <button type="submit" class="delete-btn">Удалить</button>
+                    </form>
+                </div>
+            </li>
+        {% endfor %}
+    </ul>
+
+    <script>
+        function updateTime() {
+            const now = new Date();
+            const options = {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            };
+            document.getElementById('current-time').textContent = now.toLocaleDateString('ru-RU', options);
+        }
+        updateTime();
+        setInterval(updateTime, 1000);
+    </script>
+</body>
+</html>
