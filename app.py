@@ -31,12 +31,16 @@ def index():
             return redirect(url_for('index'))
         else:
             task = request.form['task']
-            deadline = request.form.get('deadline')
-            notify_minutes = request.form.get('notify_minutes', 0)
-            if deadline == '':
+            deadline_str = request.form.get('deadline')
+            if deadline_str == '':
                 deadline = None
             else:
-                deadline = datetime.strptime(deadline, '%Y-%m-%dT%H:%M')
+                deadline = datetime.strptime(deadline_str, '%Y-%m-%dT%H:%M')
+            notify_minutes_str = request.form.get('notify_minutes')
+            if notify_minutes_str == '' or notify_minutes_str is None:
+                notify_minutes = 0
+            else:
+                notify_minutes = int(notify_minutes_str)
             cur.execute(
                 'INSERT INTO tasks (description, deadline, notify_minutes) VALUES (%s, %s, %s)',
                 (task, deadline, notify_minutes)
@@ -62,7 +66,7 @@ def index():
                 highlight = True
         highlighted_tasks.append((task_id, description, deadline, notify_minutes, highlight))
 
-    return render_template('index.html', tasks=highlighted_tasks)
+    return render_template('templates/index.html', tasks=highlighted_tasks)
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=False)
