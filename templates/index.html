@@ -4,6 +4,24 @@
     <meta charset="UTF-8">
     <title>Мои задачи</title>
     <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 0 20px;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        #current-time {
+            font-size: 1.2em;
+            color: #555;
+        }
         .task-item {
             margin: 10px 0;
             padding: 10px;
@@ -37,11 +55,33 @@
         }
         form input, form button {
             margin: 5px 0;
+            padding: 5px;
+        }
+        form input[type="text"] {
+            width: 60%;
+        }
+        form input[type="datetime-local"], form input[type="number"] {
+            width: 20%;
+        }
+        form button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            padding: 6px 12px;
+            cursor: pointer;
+        }
+        form button:hover {
+            background-color: #45a049;
         }
     </style>
 </head>
 <body>
-    <h1>📋 Список задач</h1>
+    <div class="header">
+        <h1>📋 Список задач</h1>
+        <div id="current-time"></div>
+    </div>
+
     <form method="POST">
         <input type="text" name="task" placeholder="Новая задача" required>
         <input type="datetime-local" name="deadline" placeholder="Дедлайн">
@@ -70,5 +110,22 @@
             </li>
         {% endfor %}
     </ul>
+
+    <script>
+        function updateTime() {
+            const now = new Date();
+            const options = {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            };
+            document.getElementById('current-time').textContent = now.toLocaleDateString('ru-RU', options);
+        }
+        updateTime();
+        setInterval(updateTime, 1000);
+    </script>
 </body>
 </html>
