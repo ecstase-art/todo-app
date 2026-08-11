@@ -66,7 +66,7 @@ def index():
                 highlight = True
         highlighted_tasks.append((task_id, description, deadline, notify_minutes, highlight))
 
-    return render_template('templates/index.html', tasks=highlighted_tasks)
+    return render_template('index.html', tasks=highlighted_tasks)
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=False)
