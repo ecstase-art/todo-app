@@ -3,5 +3,6 @@ CREATE TABLE IF NOT EXISTS tasks (
     description TEXT NOT NULL,
     deadline TIMESTAMP,
     notify_minutes INTEGER DEFAULT 0,
-    completed BOOLEAN DEFAULT FALSE
+    completed BOOLEAN DEFAULT FALSE,
+    completed_at TIMESTAMP
 );

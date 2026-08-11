@@ -1,217 +1,60 @@
-/* Общие стили */
-body {
-    font-family: Arial, sans-serif;
-    max-width: 800px;
-    margin: 20px auto;
-    padding: 0 20px;
-}
-
-/* Шапка с часами */
-.header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-bottom: 2px solid #eee;
-    padding-bottom: 10px;
-    margin-bottom: 20px;
-}
-
-#current-time {
-    font-size: 1.2em;
-    color: #555;
-}
-
-/* Форма добавления */
-form input, form button {
-    margin: 5px 0;
-    padding: 5px;
-}
-
-form input[type="text"] {
-    width: 60%;
-}
-
-form input[type="datetime-local"], form input[type="number"] {
-    width: 20%;
-}
-
-form button {
-    background-color: #4CAF50;
-    color: white;
-    border: none;
-    border-radius: 3px;
-    padding: 6px 12px;
-    cursor: pointer;
-}
-
-form button:hover {
-    background-color: #45a049;
-}
-
-/* Список задач */
-ul {
-    list-style: none;
-    padding: 0;
-}
-
-.task-item {
-    margin: 10px 0;
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.task-text {
-    flex: 1;
-}
-
-.task-deadline {
-    margin: 0 15px;
-    color: #555;
-}
-
-/* Подсветка просроченных */
-.highlight {
-    background-color: #ffcccc;
-    border-color: #ff0000;
-}
-
-/* Кнопка удаления — красный кружок с крестиком */
-.delete-btn {
-    background-color: #ff4444;
-    color: white;
-    border: none;
-    border-radius: 50%;
-    width: 30px;
-    height: 30px;
-    font-size: 18px;
-    line-height: 1;
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    transition: background-color 0.2s;
-}
-
-.delete-btn:hover {
-    background-color: #cc0000;
-}
-
-/* Ссылка "редактировать" */
-a {
-    text-decoration: none;
-    color: #007bff;
-    margin-right: 10px;
-}
-
-a:hover {
-    text-decoration: underline;
-}
-
-/* Стили для страницы редактирования */
-.edit-form div {
-    margin-bottom: 10px;
-}
-
-.edit-form label {
-    display: inline-block;
-    width: 150px;
-}
-
-.edit-form input[type="text"],
-.edit-form input[type="datetime-local"],
-.edit-form input[type="number"] {
-    padding: 5px;
-    width: 70%;
-}
-
-.edit-form button {
-    background-color: #4CAF50;
-    color: white;
-    border: none;
-    border-radius: 3px;
-    padding: 8px 16px;
-    cursor: pointer;
-}
-
-.edit-form button:hover {
-    background-color: #45a049;
-}
-
-.back-link {
-    display: inline-block;
-    margin-top: 10px;
-}
-
 /* Аналоговые часы */
-.clock-container {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-#clock {
-    width: 80px;
-    height: 80px;
-    border-radius: 50%;
-    background: #fff;
-    box-shadow: 0 0 10px rgba(0,0,0,0.2);
-}
-
-/* Часы с датой */
 .clock-container {
     display: flex;
     flex-direction: column;
     align-items: center;
 }
 
+#clock {
+    width: 160px;
+    height: 160px;
+}
+
 #current-date {
-    font-size: 0.9em;
-    color: #555;
-    margin-top: 4px;
+    font-size: 0.9rem;
+    color: #6c757d;
+    margin-top: 2px;
 }
 
-/* Цветовые состояния задач */
-.completed {
-    background-color: #d4edda;
-    border-color: #28a745;
+#timezone-selector {
+    font-size: 0.9rem;
+    color: #0d6efd;
+    cursor: pointer;
+    user-select: none;
+    transition: color 0.2s;
+}
+#timezone-selector:hover {
+    color: #0a58ca;
+    text-decoration: underline;
 }
 
-.completed-text {
+/* Цветовые состояния задач (переопределяем фоны Bootstrap) */
+.task-item.completed {
+    background-color: #d4edda !important;
+    border-left: 4px solid #28a745;
+}
+.task-item.completed .task-text {
     text-decoration: line-through;
     color: #155724;
 }
 
-.warning {
-    background-color: #fff3cd;
-    border-color: #ffc107;
+.task-item.warning {
+    background-color: #fff3cd !important;
+    border-left: 4px solid #ffc107;
+}
+.task-item.overdue {
+    background-color: #f8d7da !important;
+    border-left: 4px solid #dc3545;
 }
 
-.overdue {
-    background-color: #f8d7da;
-    border-color: #dc3545;
-}
-
-/* Кнопка "Выполнено" */
-.complete-btn {
-    background-color: #28a745;
-    color: white;
-    border: none;
-    border-radius: 50%;
+/* Кнопки действий (круглые) */
+.btn-action {
     width: 30px;
     height: 30px;
-    font-size: 16px;
-    cursor: pointer;
+    padding: 0;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    transition: background-color 0.2s;
-    margin-right: 5px;
-}
-
-.complete-btn:hover {
-    background-color: #1e7e34;
+    border-radius: 50%;
+    border: none;
 }

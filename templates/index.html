@@ -1,67 +1,190 @@
 <!DOCTYPE html>
-<html>
+<html lang="ru">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Мои задачи</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome для иконок -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Ваши кастомные стили -->
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-    <div class="header">
-        <h1>📋 Список задач</h1>
-        <div class="clock-container">
-            <canvas id="clock" width="160" height="160"></canvas>
-            <div id="current-date"></div>
+    <div class="container mt-4">
+        <!-- Шапка -->
+        <div class="row align-items-center border-bottom pb-3 mb-4">
+            <div class="col">
+                <h1 class="display-6">📋 Список задач</h1>
+            </div>
+            <div class="col-auto text-center">
+                <canvas id="clock" width="160" height="160" class="d-block mx-auto"></canvas>
+                <div id="current-date" class="small text-muted"></div>
+                <div id="timezone-selector" class="small text-primary" style="cursor: pointer; user-select: none;">
+                    UTC{{ '+' if current_tz >= 0 else '' }}{{ current_tz }} ▼
+                </div>
+            </div>
         </div>
+
+        <input type="hidden" id="tz-offset" value="{{ current_tz }}">
+
+        <!-- Форма добавления -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <form method="POST" id="task-form" class="row g-2">
+                    <div class="col-md-5">
+                        <input type="text" name="task" class="form-control" placeholder="Новая задача" required>
+                    </div>
+                    <div class="col-md-3">
+                        <input type="datetime-local" name="deadline" id="deadline-input" class="form-control" placeholder="Дедлайн">
+                    </div>
+                    <div class="col-md-2">
+                        <input type="number" name="notify_minutes" class="form-control" placeholder="Мин. оповещ." min="0">
+                    </div>
+                    <div class="col-md-2">
+                        <button type="submit" class="btn btn-success w-100">Добавить</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Панель сортировки и фильтрации -->
+        <div class="card mb-3">
+            <div class="card-body d-flex flex-wrap gap-3 align-items-center">
+                <div class="d-flex align-items-center gap-2">
+                    <label for="sort-select" class="fw-bold mb-0">Сортировать по:</label>
+                    <select id="sort-select" class="form-select form-select-sm" style="width: auto;">
+                        <option value="deadline" {% if sort_by == 'deadline' %}selected{% endif %}>Дедлайну (ближайшие)</option>
+                        <option value="newest" {% if sort_by == 'newest' %}selected{% endif %}>Новизне (сначала новые)</option>
+                        <option value="completed" {% if sort_by == 'completed' %}selected{% endif %}>Статусу (невыполненные сверху)</option>
+                    </select>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <label for="filter-select" class="fw-bold mb-0">Фильтр:</label>
+                    <select id="filter-select" class="form-select form-select-sm" style="width: auto;">
+                        <option value="all" {% if filter_by == 'all' %}selected{% endif %}>Все задачи</option>
+                        <option value="overdue" {% if filter_by == 'overdue' %}selected{% endif %}>Просроченные</option>
+                        <option value="warning" {% if filter_by == 'warning' %}selected{% endif %}>Оповещения (жёлтые)</option>
+                        <option value="completed" {% if filter_by == 'completed' %}selected{% endif %}>Выполненные</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Статистика -->
+        <div class="row g-2 mb-4">
+            <div class="col-6 col-md-2">
+                <div class="card text-center">
+                    <div class="card-body py-2">
+                        <div class="fs-6 fw-bold">{{ stats.total }}</div>
+                        <div class="small text-muted">Всего</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 col-md-2">
+                <div class="card text-center">
+                    <div class="card-body py-2">
+                        <div class="fs-6 fw-bold text-success">{{ stats.completed }}</div>
+                        <div class="small text-muted">✅ Выполнено</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 col-md-2">
+                <div class="card text-center">
+                    <div class="card-body py-2">
+                        <div class="fs-6 fw-bold text-danger">{{ stats.overdue }}</div>
+                        <div class="small text-muted">🔴 Просрочено</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 col-md-2">
+                <div class="card text-center">
+                    <div class="card-body py-2">
+                        <div class="fs-6 fw-bold text-warning">{{ stats.warning }}</div>
+                        <div class="small text-muted">🟡 Оповещения</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 col-md-4">
+                <div class="card text-center">
+                    <div class="card-body py-2">
+                        <div class="fs-6 fw-bold">{{ stats.avg_deadline }}</div>
+                        <div class="small text-muted">⏱ Среднее время до дедлайна</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Список задач -->
+        <ul class="list-unstyled">
+            {% for task in tasks %}
+                <li class="card mb-2 task-item {{ task[6] }}">
+                    <div class="card-body d-flex flex-wrap align-items-center justify-content-between">
+                        <div class="flex-grow-1">
+                            <span class="task-text {% if task[4] %}completed-text{% endif %}">{{ task[1] }}</span>
+                            <div class="small text-muted">
+                                {% if task[2] %}
+                                    Дедлайн: {{ task[2].strftime('%d.%m.%Y %H:%M') }}
+                                    {% if task[3] %}
+                                        (оповестить за {{ task[3] }} мин.)
+                                    {% endif %}
+                                {% else %}
+                                    Без дедлайна
+                                {% endif %}
+                                {% if task[4] and task[5] %}
+                                    <br>✅ Выполнено: {{ task[5].strftime('%d.%m.%Y %H:%M') }}
+                                {% elif task[4] %}
+                                    <br>✅ Выполнено
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-center gap-2">
+                            <a href="{{ url_for('edit_task', task_id=task[0]) }}" class="text-decoration-none">
+                                <i class="fas fa-pencil-alt fa-lg text-primary"></i>
+                            </a>
+                            {% if not task[4] %}
+                                <form method="POST" action="{{ url_for('complete_task', task_id=task[0], sort=sort_by, filter=filter_by) }}" class="d-inline">
+                                    <button type="submit" class="btn btn-sm btn-success rounded-circle p-0" style="width: 30px; height: 30px;" title="Отметить выполненным">
+                                        <i class="fas fa-check"></i>
+                                    </button>
+                                </form>
+                            {% endif %}
+                            <form method="POST" class="d-inline">
+                                <input type="hidden" name="delete_id" value="{{ task[0] }}">
+                                <button type="submit" class="btn btn-sm btn-danger rounded-circle p-0" style="width: 30px; height: 30px;" title="Удалить задачу">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </li>
+            {% endfor %}
+        </ul>
     </div>
 
-    <form method="POST" id="task-form">
-        <input type="text" name="task" placeholder="Новая задача" required>
-        <input type="datetime-local" name="deadline" id="deadline-input" placeholder="Дедлайн">
-        <input type="number" name="notify_minutes" placeholder="Минуты до оповещения" min="0">
-        <button type="submit">Добавить</button>
-    </form>
-
-    <ul>
-        {% for task in tasks %}
-            <li class="task-item {{ task[5] }}">
-                <span class="task-text {% if task[4] %}completed-text{% endif %}">{{ task[1] }}</span>
-                <span class="task-deadline">
-                    {% if task[2] %}
-                        Дедлайн: {{ task[2].strftime('%d.%m.%Y %H:%M') }}
-                        {% if task[3] %}
-                            (оповестить за {{ task[3] }} мин.)
-                        {% endif %}
-                    {% else %}
-                        Без дедлайна
-                    {% endif %}
-                </span>
-                <div>
-                    <a href="{{ url_for('edit_task', task_id=task[0]) }}">✏️</a>
-                    {% if not task[4] %}
-                        <form method="POST" action="{{ url_for('complete_task', task_id=task[0]) }}" style="display: inline;">
-                            <button type="submit" class="complete-btn" title="Отметить выполненным">✔️</button>
-                        </form>
-                    {% endif %}
-                    <form method="POST" style="display: inline;">
-                        <input type="hidden" name="delete_id" value="{{ task[0] }}">
-                        <button type="submit" class="delete-btn" title="Удалить задачу">✖</button>
-                    </form>
-                </div>
-            </li>
-        {% endfor %}
-    </ul>
+    <!-- Bootstrap JS (опционально) -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
-        // === Аналоговые часы ===
+        const tzOffset = parseInt(document.getElementById('tz-offset').value) || 3;
+
+        function getTimeInTimezone(date, offsetHours) {
+            const utc = date.getTime() + date.getTimezoneOffset() * 60000;
+            return new Date(utc + offsetHours * 3600000);
+        }
+
         const canvas = document.getElementById('clock');
         const ctx = canvas.getContext('2d');
 
         function drawClock() {
             const now = new Date();
-            const hours = now.getHours() % 12;
-            const minutes = now.getMinutes();
-            const seconds = now.getSeconds();
-            const millis = now.getMilliseconds();
+            const localTime = getTimeInTimezone(now, tzOffset);
+
+            const hours = localTime.getHours() % 12;
+            const minutes = localTime.getMinutes();
+            const seconds = localTime.getSeconds();
+            const millis = localTime.getMilliseconds();
 
             const radius = 70;
             const centerX = 80;
@@ -132,7 +255,7 @@
             ctx.fillStyle = '#333';
             ctx.fill();
 
-            const dateStr = now.toLocaleDateString('ru-RU', {
+            const dateStr = localTime.toLocaleDateString('ru-RU', {
                 day: '2-digit',
                 month: '2-digit',
                 year: 'numeric'
@@ -143,19 +266,96 @@
         drawClock();
         setInterval(drawClock, 1000);
 
-        // === Автоподстановка времени в поле дедлайна ===
         document.addEventListener('DOMContentLoaded', function() {
+            // Автоподстановка дедлайна
             const deadlineInput = document.getElementById('deadline-input');
             if (deadlineInput) {
                 const now = new Date();
-                now.setSeconds(0, 0);
-                const year = now.getFullYear();
-                const month = String(now.getMonth() + 1).padStart(2, '0');
-                const day = String(now.getDate()).padStart(2, '0');
-                const hours = String(now.getHours()).padStart(2, '0');
-                const minutes = String(now.getMinutes()).padStart(2, '0');
+                const localTime = getTimeInTimezone(now, tzOffset);
+                localTime.setSeconds(0, 0);
+                const year = localTime.getFullYear();
+                const month = String(localTime.getMonth() + 1).padStart(2, '0');
+                const day = String(localTime.getDate()).padStart(2, '0');
+                const hours = String(localTime.getHours()).padStart(2, '0');
+                const minutes = String(localTime.getMinutes()).padStart(2, '0');
                 deadlineInput.value = `${year}-${month}-${day}T${hours}:${minutes}`;
             }
+
+            // === Интерактивный выбор часового пояса ===
+            const selector = document.getElementById('timezone-selector');
+            const timezones = [
+                { name: 'Калининград (MSK-1)', offset: 2 },
+                { name: 'Москва (MSK)', offset: 3 },
+                { name: 'Самара (MSK+1)', offset: 4 },
+                { name: 'Екатеринбург (MSK+2)', offset: 5 },
+                { name: 'Омск (MSK+3)', offset: 6 },
+                { name: 'Красноярск (MSK+4)', offset: 7 },
+                { name: 'Иркутск (MSK+5)', offset: 8 },
+                { name: 'Якутск (MSK+6)', offset: 9 },
+                { name: 'Владивосток (MSK+7)', offset: 10 },
+                { name: 'Магадан (MSK+8)', offset: 11 },
+                { name: 'Камчатка (MSK+9)', offset: 12 }
+            ];
+            let isOpen = false;
+
+            selector.addEventListener('click', function(e) {
+                e.stopPropagation();
+                if (isOpen) return;
+                isOpen = true;
+
+                const select = document.createElement('select');
+                select.className = 'form-select form-select-sm';
+                select.style.fontSize = '0.9em';
+                timezones.forEach(tz => {
+                    const option = document.createElement('option');
+                    option.value = tz.offset;
+                    option.textContent = `${tz.name} (UTC${tz.offset >= 0 ? '+' : ''}${tz.offset})`;
+                    if (tz.offset === tzOffset) option.selected = true;
+                    select.appendChild(option);
+                });
+
+                selector.textContent = '';
+                selector.appendChild(select);
+                select.focus();
+
+                select.addEventListener('change', function() {
+                    const selectedOffset = parseInt(this.value);
+                    fetch("{{ url_for('set_timezone') }}", {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                        body: `timezone=${selectedOffset}`
+                    }).then(() => {
+                        window.location.reload();
+                    });
+                });
+
+                const closeSelect = function() {
+                    if (isOpen) {
+                        isOpen = false;
+                        selector.textContent = `UTC${tzOffset >= 0 ? '+' : ''}${tzOffset} ▼`;
+                    }
+                };
+                select.addEventListener('blur', closeSelect);
+                document.addEventListener('click', function handler(e) {
+                    if (!selector.contains(e.target)) {
+                        closeSelect();
+                        document.removeEventListener('click', handler);
+                    }
+                });
+            });
+
+            // === Обработчики для сортировки и фильтрации ===
+            const sortSelect = document.getElementById('sort-select');
+            const filterSelect = document.getElementById('filter-select');
+
+            function updateUrl() {
+                const sort = sortSelect.value;
+                const filter = filterSelect.value;
+                window.location.href = "{{ url_for('index') }}?sort=" + sort + "&filter=" + filter;
+            }
+
+            sortSelect.addEventListener('change', updateUrl);
+            filterSelect.addEventListener('change', updateUrl);
         });
     </script>
 </body>
