@@ -8,9 +8,6 @@ def client():
         yield client
 
 def test_home_page(client):
-    """Проверяем, что главная страница загружается и содержит слово 'Список задач'"""
     response = client.get('/')
     assert response.status_code == 200
-    # Проверяем наличие подстроки "Список задач" в UTF-8 (без учёта эмодзи)
     assert b'\xd0\xa1\xd0\xbf\xd0\xb8\xd1\x81\xd0\xbe\xd0\xba \xd0\xb7\xd0\xb0\xd0\xb4\xd0\xb0\xd1\x87' in response.data
-    
