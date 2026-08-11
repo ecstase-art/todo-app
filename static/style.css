@@ -1,0 +1,109 @@
+body {
+    font-family: Arial, sans-serif;
+    max-width: 800px;
+    margin: 20px auto;
+    padding: 0 20px;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px solid #eee;
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+}
+
+#current-time {
+    font-size: 1.2em;
+    color: #555;
+}
+
+.task-item {
+    margin: 10px 0;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #fff;
+    transition: background-color 0.2s;
+}
+
+.task-text {
+    flex: 1;
+}
+
+.task-deadline {
+    margin: 0 15px;
+    color: #555;
+}
+
+/* Жёлтый — оповещение установлено (есть дедлайн и минуты) */
+.task-item.notification {
+    background-color: #fff3cd;
+    border-color: #ffc107;
+}
+
+/* Красный — просрочено (время оповещения прошло) */
+.task-item.overdue {
+    background-color: #f8d7da;
+    border-color: #dc3545;
+}
+
+/* Кнопка удаления — красный кружок с крестиком */
+.delete-btn {
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    font-size: 20px;
+    line-height: 30px;
+    text-align: center;
+    cursor: pointer;
+    padding: 0;
+    margin-left: 10px;
+}
+
+.delete-btn:hover {
+    background-color: #c82333;
+}
+
+/* Форма */
+form input, form button {
+    margin: 5px 0;
+    padding: 5px;
+}
+
+form input[type="text"] {
+    width: 60%;
+}
+
+form input[type="datetime-local"], form input[type="number"] {
+    width: 20%;
+}
+
+form button[type="submit"] {
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 3px;
+    padding: 6px 12px;
+    cursor: pointer;
+}
+
+form button[type="submit"]:hover {
+    background-color: #45a049;
+}
+
+a {
+    text-decoration: none;
+    color: #007bff;
+}
+
+a:hover {
+    text-decoration: underline;
+}

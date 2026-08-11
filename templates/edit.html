@@ -3,13 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <title>Редактировать задачу</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            max-width: 600px;
-            margin: 40px auto;
-            padding: 0 20px;
-        }
+        /* Дополнительные стили только для страницы редактирования */
         form div {
             margin-bottom: 10px;
         }
@@ -20,21 +16,6 @@
         input[type="text"], input[type="datetime-local"], input[type="number"] {
             padding: 5px;
             width: 70%;
-        }
-        button {
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            border-radius: 3px;
-            padding: 8px 16px;
-            cursor: pointer;
-        }
-        button:hover {
-            background-color: #45a049;
-        }
-        a {
-            display: inline-block;
-            margin-top: 10px;
         }
     </style>
 </head>
