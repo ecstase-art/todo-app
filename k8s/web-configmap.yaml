@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: web-config
+  namespace: todo-app
+data:
+  FLASK_ENV: development
+  ES_HOST: elasticsearch   # если хочешь добавить ELK – потом раскомментируй
+  ES_PORT: "9200"

@@ -1,4 +1,19 @@
-/* Аналоговые часы */
+body {
+    font-family: Arial, sans-serif;
+    max-width: 800px;
+    margin: 20px auto;
+    padding: 0 20px;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px solid #eee;
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+}
+
 .clock-container {
     display: flex;
     flex-direction: column;
@@ -6,8 +21,10 @@
 }
 
 #clock {
-    width: 160px;
-    height: 160px;
+    /* Размер определяется атрибутами canvas */
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 0 10px rgba(0,0,0,0.2);
 }
 
 #current-date {
@@ -28,7 +45,6 @@
     text-decoration: underline;
 }
 
-/* Цветовые состояния задач (переопределяем фоны Bootstrap) */
 .task-item.completed {
     background-color: #d4edda !important;
     border-left: 4px solid #28a745;
@@ -47,7 +63,6 @@
     border-left: 4px solid #dc3545;
 }
 
-/* Кнопки действий (круглые) */
 .btn-action {
     width: 30px;
     height: 30px;
